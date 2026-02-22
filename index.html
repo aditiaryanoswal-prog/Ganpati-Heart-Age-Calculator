@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ganpati Heart Age Calculator (IMT + Biomarkers)</title>
+  <style>
+    :root{--ink:#0b1220;--muted:#5b667a;--card:#fff;--bg:#f5f7fb;--accent:#1f4e79;--accent2:#d9e1f2;--border:#cfd6e3;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;margin:0;color:var(--ink);background:var(--bg);}
+    header{background:var(--accent);color:#fff;padding:18px;}
+    header h1{margin:0;font-size:18px;}
+    header .sub{opacity:.9;font-size:13px;margin-top:4px;}
+    .wrap{max-width:1100px;margin:18px auto;padding:0 14px;}
+    .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;}
+    @media (max-width:980px){.grid{grid-template-columns:1fr;}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 0 rgba(10,20,40,.03);overflow:hidden;}
+    .card h2{margin:0;padding:14px;font-size:15px;background:var(--accent2);border-bottom:1px solid var(--border);}
+    .card .body{padding:14px;}
+    .row{display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin-bottom:10px;align-items:center;}
+    .row label{font-size:13px;color:var(--muted);}
+    input,select{width:100%;padding:10px;font-size:14px;border:1px solid var(--border);border-radius:10px;background:#fff;outline:none;}
+    input:focus,select:focus{border-color:#8aa9c5;box-shadow:0 0 0 3px rgba(31,78,121,.12);}
+    .hint{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:10px;}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+    button{border:0;border-radius:10px;padding:10px 12px;font-size:14px;cursor:pointer;background:var(--accent);color:#fff;}
+    button.secondary{background:#e9eef6;color:var(--ink);border:1px solid var(--border);}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px;}
+    .b-green{background:#dff3e2;color:#0f5a24;}
+    .b-yellow{background:#fff2cc;color:#7a5a00;}
+    .b-orange{background:#ffe1cc;color:#8a3e00;}
+    .b-red{background:#ffd6d6;color:#8a0000;}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+    @media (max-width:650px){.kpi{grid-template-columns:1fr;}}
+    .kpi .box{border:1px solid var(--border);border-radius:12px;padding:12px;}
+    .kpi .label{font-size:12px;color:var(--muted);}
+    .kpi .val{font-size:20px;font-weight:700;margin-top:6px;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{border:1px solid var(--border);padding:10px;font-size:13px;vertical-align:top;}
+    th{background:var(--accent2);text-align:left;}
+    .muted{color:var(--muted);}
+    .note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35;}
+    .small{font-size:12px;}
+    .err{background:#ffd6d6;border:1px solid #ff9c9c;color:#8a0000;border-radius:10px;padding:10px;margin-top:10px;font-size:13px;white-space:pre-wrap;}
+    @media print{header,.no-print{display:none!important;}body{background:#fff;}.wrap{max-width:none;margin:0;padding:0;}.grid{grid-template-columns:1fr;}.card{box-shadow:none;border-radius:0;border:0;}.card h2{border:0;}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Ganpati Heart Age Calculator (Prototype)</h1>
+  <div class="sub">IMT + biomarkers → Heart Age gap & patient-facing report</div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>1) Data Entry</h2>
+      <div class="body">
+        <div class="row"><label>Patient Name</label><input id="name" placeholder="e.g., Mr. X" /></div>
+        <div class="row"><label>MRN / ID</label><input id="mrn" placeholder="Optional" /></div>
+        <div class="row"><label>Date</label><input id="date" type="date"/></div>
+
+        <div class="row"><label>Sex</label>
+          <select id="sex"><option value="M">Male</option><option value="F">Female</option></select>
+        </div>
+
+        <div class="row"><label>Chronological Age (years)</label><input id="age" type="number" min="18" max="100" step="1" value="45"/></div>
+        <div class="row"><label>Smoking</label>
+          <select id="smoke"><option value="N">No</option><option value="Y">Yes</option></select>
+        </div>
+        <div class="row"><label>Diabetes</label>
+          <select id="dm"><option value="N">No</option><option value="Y">Yes</option></select>
+        </div>
+        <div class="row"><label>Family History Premature CAD</label>
+          <select id="fh"><option value="N">No</option><option value="Y">Yes</option></select>
+        </div>
+
+        <div class="row"><label>Systolic BP (mmHg)</label><input id="sbp" type="number" min="80" max="240" step="1" value="130"/></div>
+
+        <div class="row"><label>ApoB (mg/dL) <span class="muted">(preferred)</span></label><input id="apob" type="number" min="0" max="300" step="1" placeholder="Leave blank if not available"/></div>
+        <div class="row"><label>LDL (mg/dL) <span class="muted">(used if ApoB blank)</span></label><input id="ldl" type="number" min="0" max="400" step="1" value="120"/></div>
+
+        <div class="row"><label>Lp(a) (mg/dL)</label><input id="lpa" type="number" min="0" max="300" step="1" placeholder="Optional"/></div>
+        <div class="hint">If your lab reports nmol/L, convert or modify thresholds in the code.</div>
+
+        <div class="row"><label>hsCRP (mg/L)</label><input id="crp" type="number" min="0" max="200" step="0.1" value="1.5"/></div>
+        <div class="row"><label>HbA1c (%)</label><input id="a1c" type="number" min="3" max="20" step="0.1" value="5.9"/></div>
+        <div class="row"><label>Mean Carotid IMT (mm)</label><input id="imt" type="number" min="0.30" max="2.50" step="0.01" value="0.75"/></div>
+
+        <div class="row"><label>Carotid Plaque Present</label>
+          <select id="plaque"><option value="N">No</option><option value="Y">Yes</option></select>
+        </div>
+
+        <div class="btns no-print">
+          <button id="btnGen" type="button">Generate Report</button>
+          <button id="btnReset" type="button" class="secondary">Reset</button>
+          <button id="btnPrint" type="button" class="secondary">Print / Save as PDF</button>
+        </div>
+
+        <div class="note">
+          <b>Note:</b> Prototype for education + internal tracking. Not a guideline-endorsed clinical decision tool.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) Generated Report</h2>
+      <div class="body">
+        <div id="report" class="muted">Fill data and click <b>Generate Report</b>.</div>
+        <div id="errBox" class="err" style="display:none"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  // --- Expected IMT reference (PLACEHOLDER defaults; edit) ---
+  var AGE_POINTS = [30,35,40,45,50,55,60,65,70,75,80];
+  var EXP_IMT_M  = [0.510,0.541,0.572,0.603,0.634,0.665,0.696,0.727,0.758,0.789,0.820];
+  var EXP_IMT_F  = [0.490,0.519,0.548,0.577,0.606,0.635,0.664,0.693,0.722,0.751,0.780];
+
+  function $(id){ return document.getElementById(id); }
+  function clamp(x,a,b){ return Math.min(b, Math.max(a,x)); }
+  function lerp(x0,y0,x1,y1,x){ if(x1===x0) return y0; return y0 + (y1-y0)*((x-x0)/(x1-x0)); }
+
+  function expectedIMT(age, sex){
+    var xs = AGE_POINTS;
+    var ys = (sex==="F") ? EXP_IMT_F : EXP_IMT_M;
+    var a = clamp(age, xs[0], xs[xs.length-1]);
+    for(var i=0;i<xs.length-1;i++){
+      if(a>=xs[i] && a<=xs[i+1]) return lerp(xs[i],ys[i],xs[i+1],ys[i+1],a);
+    }
+    return ys[ys.length-1];
+  }
+
+  // Points
+  function pointsLDL(ldl){ if(ldl===null) return null; if(ldl<70) return 1; if(ldl<100) return 3; if(ldl<130) return 5; if(ldl<160) return 7; return 9; }
+  function pointsApoB(apob){ if(apob===null) return null; if(apob<80) return 1; if(apob<100) return 4; if(apob<120) return 6; if(apob<140) return 8; return 9; }
+  function pointsLpA(lpa){ if(lpa===null) return null; if(lpa<30) return 1; if(lpa<50) return 4; if(lpa<70) return 7; return 9; }
+  function pointsCRP(crp){ if(crp===null) return null; if(crp<1) return 2; if(crp<3) return 5; if(crp<=10) return 8; return 10; }
+  function pointsA1c(a1c){ if(a1c===null) return null; if(a1c<5.7) return 1; if(a1c<6.5) return 4; if(a1c<7.5) return 7; if(a1c<9.0) return 9; return 10; }
+  function pointsSBP(sbp){ if(sbp===null) return null; if(sbp<120) return 1; if(sbp<130) return 3; if(sbp<140) return 5; if(sbp<160) return 8; return 10; }
+  function pointsIMT(imtExcess, plaque){
+    if(imtExcess===null) return null;
+    if(plaque==="Y") return 10;
+    if(imtExcess<=0) return 1;
+    if(imtExcess<=0.15) return 3;
+    if(imtExcess<=0.30) return 5;
+    if(imtExcess<=0.50) return 7;
+    return 10;
+  }
+
+  function parseNum(id){
+    var v = $(id).value;
+    if(v===null || v===undefined || v==="") return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+  function fmt(n,d){
+    if(n===null || n===undefined || isNaN(n)) return "—";
+    var p = (d===undefined)?0:d;
+    return Number(n).toFixed(p);
+  }
+  function bandFromGap(gap){
+    if(gap<=3) return {label:"Green (0–3)", cls:"b-green"};
+    if(gap<=8) return {label:"Yellow (3–8)", cls:"b-yellow"};
+    if(gap<=15) return {label:"Orange (8–15)", cls:"b-orange"};
+    return {label:"Red (>15)", cls:"b-red"};
+  }
+  function escapeHtml(str){
+    var s = String(str);
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+  function showError(msg){
+    $("errBox").style.display = "block";
+    $("errBox").textContent = msg;
+  }
+  function clearError(){
+    $("errBox").style.display = "none";
+    $("errBox").textContent = "";
+  }
+
+  function compute(){
+    clearError();
+    try{
+      var name = $("name").value || "—";
+      var mrn  = $("mrn").value || "";
+      var date = $("date").value || "";
+      var sex  = $("sex").value;
+      var age  = parseNum("age");
+      var smoke= $("smoke").value;
+      var dm   = $("dm").value;
+      var fh   = $("fh").value;
+
+      var sbp  = parseNum("sbp");
+      var apob = parseNum("apob");
+      var ldl  = parseNum("ldl");
+      var lpa  = parseNum("lpa");
+      var crp  = parseNum("crp");
+      var a1c  = parseNum("a1c");
+      var imt  = parseNum("imt");
+      var plaque = $("plaque").value;
+
+      var expIMT = (age!==null) ? expectedIMT(age, sex) : null;
+      var imtExcess = (imt!==null && expIMT!==null && expIMT>0) ? ((imt-expIMT)/expIMT) : null;
+
+      var p_imt = pointsIMT(imtExcess, plaque);
+      var p_lip = (apob!==null) ? pointsApoB(apob) : pointsLDL(ldl);
+      var p_crp = pointsCRP(crp);
+      var p_a1c = pointsA1c(a1c);
+      var p_sbp = pointsSBP(sbp);
+      var p_lpa = (lpa!==null) ? pointsLpA(lpa) : 0;
+      var p_smoke = (smoke==="Y") ? 3 : 0;
+      var p_dm = (dm==="Y") ? 3 : 0;
+      var p_fh = (fh==="Y") ? 2 : 0;
+
+      var parts = [p_imt,p_lip,p_crp,p_a1c,p_sbp,p_lpa,p_smoke,p_dm,p_fh];
+      var total = 0;
+      for(var i=0;i<parts.length;i++){ total += (parts[i]===null?0:parts[i]); }
+
+      var gap = Math.min(25, Math.max(0, Math.round((total-10)/1.8)));
+      var heartAge = (age!==null) ? (age + gap) : null;
+      var band = bandFromGap(gap);
+
+      var veryHigh = (plaque==="Y" || gap>=8);
+      var targetLDL = veryHigh ? "<55" : "<70";
+      var targetApoB = veryHigh ? "<65" : "<80";
+
+      var lipidLabel = (apob!==null) ? "ApoB" : "LDL";
+      var lipidVal = (apob!==null) ? apob : ldl;
+      var lipidTarget = (apob!==null) ? targetApoB : targetLDL;
+
+      var reportHTML = ''
+        + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">'
+        +   '<div>'
+        +     '<div class="small muted"><b>Patient</b></div>'
+        +     '<div style="font-weight:700;font-size:16px;">'+escapeHtml(name)+'</div>'
+        +     '<div class="small muted">'
+        +       (mrn ? ('MRN/ID: '+escapeHtml(mrn)) : '')
+        +       ((mrn && date) ? ' | ' : '')
+        +       (date ? ('Date: '+escapeHtml(date)) : '')
+        +     '</div>'
+        +   '</div>'
+        +   '<div><span class="badge '+band.cls+'">'+band.label+'</span></div>'
+        + '</div>'
+
+        + '<div class="kpi">'
+        +   '<div class="box"><div class="label">Real Age</div><div class="val">'+fmt(age,0)+' yrs</div></div>'
+        +   '<div class="box"><div class="label">Biological Heart Age</div><div class="val">'+fmt(heartAge,0)+' yrs</div></div>'
+        +   '<div class="box"><div class="label">Heart Age Gap</div><div class="val">+'+fmt(gap,0)+' yrs</div></div>'
+        + '</div>'
+
+        + '<table><thead><tr><th>Marker</th><th>Value</th><th>Target</th><th>Comment</th></tr></thead><tbody>'
+        + '<tr><td>Mean Carotid IMT (mm)</td><td>'+fmt(imt,2)+'</td><td class="muted">Lower better</td>'
+        + '<td>Expected IMT: <b>'+fmt(expIMT,2)+' mm</b>; excess: <b>'+(imtExcess===null?'—':(fmt(imtExcess*100,0)+'%'))+'</b></td></tr>'
+        + '<tr><td>Carotid Plaque</td><td>'+(plaque==="Y"?"Present":"Absent")+'</td><td>Absent</td><td>Plaque upgrades targets.</td></tr>'
+        + '<tr><td>'+lipidLabel+' (mg/dL)</td><td>'+fmt(lipidVal,0)+'</td><td>'+lipidTarget+'</td><td>'+(apob!==null?'ApoB preferred.':'LDL used when ApoB unavailable.')+'</td></tr>'
+        + '<tr><td>Lp(a) (mg/dL)</td><td>'+fmt(lpa,0)+'</td><td>&lt;30</td><td>≥50 mg/dL = high genetic risk.</td></tr>'
+        + '<tr><td>hsCRP (mg/L)</td><td>'+fmt(crp,1)+'</td><td>&lt;1</td><td>If &gt;10 consider acute infection/inflammation.</td></tr>'
+        + '<tr><td>HbA1c (%)</td><td>'+fmt(a1c,1)+'</td><td>&lt;6</td><td>Metabolic risk driver.</td></tr>'
+        + '<tr><td>SBP (mmHg)</td><td>'+fmt(sbp,0)+'</td><td>&lt;130</td><td>BP burden.</td></tr>'
+        + '<tr><td>Smoking / Diabetes / Family Hx</td><td>'+(smoke==="Y"?"Smoker":"Non-smoker")+'; '+(dm==="Y"?"DM":"No DM")+'; '+(fh==="Y"?"FH+":"FH-")+'</td><td class="muted">Optimize</td><td>Binary modifiers included.</td></tr>'
+        + '</tbody></table>'
+
+        + '<div style="margin-top:12px;"><b>Score details (prototype)</b>'
+        + '<div class="small muted">Total Score: <b>'+total+'</b> → Gap = <b>min(25, round((score−10)/1.8))</b></div>'
+        + '<table><thead><tr><th>Component</th><th>Points</th></tr></thead><tbody>'
+        + '<tr><td>IMT / Plaque</td><td>'+p_imt+'</td></tr>'
+        + '<tr><td>'+(apob!==null?'ApoB':'LDL')+'</td><td>'+p_lip+'</td></tr>'
+        + '<tr><td>Lp(a)</td><td>'+(lpa!==null?p_lpa:0)+'</td></tr>'
+        + '<tr><td>hsCRP</td><td>'+p_crp+'</td></tr>'
+        + '<tr><td>HbA1c</td><td>'+p_a1c+'</td></tr>'
+        + '<tr><td>SBP</td><td>'+p_sbp+'</td></tr>'
+        + '<tr><td>Smoking</td><td>'+p_smoke+'</td></tr>'
+        + '<tr><td>Diabetes</td><td>'+p_dm+'</td></tr>'
+        + '<tr><td>Family History</td><td>'+p_fh+'</td></tr>'
+        + '</tbody></table></div>'
+
+        + '<div style="margin-top:12px;"><b>Plan</b><div class="small">'
+        + '☐ Lifestyle: Mediterranean diet + daily brisk walk + resistance training 2–3x/week<br/>'
+        + '☐ Lipid: Target LDL '+targetLDL+' / ApoB '+targetApoB+'; consider statin ± ezetimibe (as clinically appropriate)<br/>'
+        + '☐ Inflammation: aim hsCRP &lt;1; optimize weight, sleep<br/>'
+        + '☐ Follow-up: Labs at 3 months; Repeat IMT at 12 months'
+        + '</div></div>'
+        + '<div class="note"><b>Disclaimer:</b> Prototype education & tracking tool. Clinical decisions must follow guidelines and clinician judgment.</div>';
+
+      $("report").className = "";
+      $("report").innerHTML = reportHTML;
+    } catch(e){
+      showError("Error while generating report:\n" + (e && e.stack ? e.stack : e));
+    }
+  }
+
+  function resetAll(){
+    $("name").value=""; $("mrn").value=""; $("date").value="";
+    $("sex").value="M"; $("age").value=45; $("smoke").value="N"; $("dm").value="N"; $("fh").value="N";
+    $("sbp").value=130; $("apob").value=""; $("ldl").value=120; $("lpa").value=""; $("crp").value=1.5; $("a1c").value=5.9; $("imt").value=0.75; $("plaque").value="N";
+    $("report").className="muted";
+    $("report").innerHTML='Fill data and click <b>Generate Report</b>.';
+    clearError();
+  }
+
+  // Wire buttons
+  $("btnGen").addEventListener("click", compute);
+  $("btnReset").addEventListener("click", resetAll);
+  $("btnPrint").addEventListener("click", function(){ window.print(); });
+
+  // Default date
+  var d = new Date();
+  $("date").value = d.toISOString().slice(0,10);
+
+  // Expose for debugging if needed
+  window.computeGanpatiHeartAge = compute;
+})();
+</script>
+</body>
+</html>
